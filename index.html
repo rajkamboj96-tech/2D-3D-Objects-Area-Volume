@@ -1,0 +1,731 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Calculator (Multi-Method Support)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: violet;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 600px; 
+            height: 100%;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            overflow: hidden;
+            margin: 0 auto;
+            position: relative; 
+        }
+
+        #shape-grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px; 
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .shape-button {
+            border: 2px solid transparent; 
+            border-image: linear-gradient(to bottom right, #a5d6a7 0%, #a5d6a7 100%) 1;
+            border-radius: 8px;
+            font-size: 0.7rem; 
+            text-align: center;
+            padding: 5px; 
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 60px; 
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Colorful Buttons */
+        .shape-button:nth-child(1) { background-color: #FF5733; }
+        .shape-button:nth-child(2) { background-color: #33A1FF; }
+        .shape-button:nth-child(3) { background-color: #E91E63; }
+        .shape-button:nth-child(4) { background-color: #00BCD4; color: black; text-shadow: none; }
+        .shape-button:nth-child(5) { background-color: #A833FF; }
+        .shape-button:nth-child(6) { background-color: #FF8C33; }
+        .shape-button:nth-child(7) { background-color: #4CAF50; }
+        .shape-button:nth-child(8) { background-color: #FF3333; }
+        .shape-button:nth-child(9) { background-color: #3357FF; }
+        .shape-button:nth-child(10) { background-color: #FFC107; color: black; text-shadow: none; }
+        .shape-button:nth-child(11) { background-color: #8CFF33; color: black; text-shadow: none; }
+        .shape-button:nth-child(12) { background-color: #9C27B0; }
+        .shape-button:nth-child(13) { background-color: #795548; }
+        .shape-button:nth-child(14) { background-color: #009688; }
+        .shape-button:nth-child(15) { background-color: #607D8B; }
+        .shape-button:nth-child(16) { background-color: #E65100; }
+
+        .shape-button:hover {
+            transform: scale(1.03);
+            filter: brightness(1.1);
+        }
+
+        .shape-button.full-width {
+            grid-column: 1 / span 2;
+        }
+
+        .punjabi-text {
+            display: block;
+            margin-bottom: 2px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .english-text {
+            display: block;
+            font-size: 0.7em; 
+        }
+
+        .shape-icon {
+            width: 32px; 
+            height: 32px; 
+            margin-top: 5px; 
+            opacity: 0.9; 
+            transition: opacity 0.3s;
+            display: block;
+        }
+
+        .shape-button:hover .shape-icon {
+            opacity: 1; 
+        }
+
+        .shape-icon path, .shape-icon rect, .shape-icon polygon, .shape-icon circle, .shape-icon ellipse {
+            stroke-width: 2.5; 
+            fill: none;
+            stroke: currentColor;
+        }
+
+        #input-results-area {
+            display: none;
+            background-color: rgba(0, 0, 0, 0.95);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            flex-direction: column;
+            padding: 20px;
+            color: white;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        #input-results-area.show {
+            display: flex;
+        }
+
+        #mini-back-btn {
+            align-self: flex-start;
+            background-color: transparent;
+            color: #ccc;
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #mini-back-btn:hover {
+            color: white;
+            border-color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        #shape-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid white;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        #inputs-container {
+            margin-bottom: 20px;
+        }
+
+        .calc-section h3 {
+            color: #a5d6a7;
+            font-size: 1.1rem;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 0.9rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #eee;
+            box-sizing: border-box;
+        }
+
+        .calc-btn {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%; 
+            background-color: #FF5722;
+            color: white;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .calc-btn:hover {
+            background-color: #E64A19;
+        }
+
+        .results-container {
+            margin-top: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px; 
+        }
+
+        .results-container h4 {
+            margin-top: 0;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 5px;
+            font-size: 0.75rem; 
+        }
+
+        .result-label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="shape-grid-container">
+        <button class="shape-button" data-shape="square">
+            <span class="english-text">SQUARE</span>
+            <span class="punjabi-text">(ਵਰਗ)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><rect x="6" y="6" width="20" height="20"/></svg>
+        </button>
+        <button class="shape-button" data-shape="rectangle">
+            <span class="english-text">RECTANGLE</span>
+            <span class="punjabi-text">(ਆਇਤ)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><rect x="2" y="10" width="28" height="12"/></svg>
+        </button>
+        <button class="shape-button full-width" data-shape="rhombus">
+            <span class="english-text">Rhombus</span>
+            <span class="punjabi-text">(ਸਮ-ਚਤੁਰਭੁਜ)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="16,4 28,16 16,28 4,16"/></svg>
+        </button>
+        <button class="shape-button full-width" data-shape="parallelogram">
+            <span class="english-text">Parallelogram</span>
+            <span class="punjabi-text">(ਸਮਾਂਤਰ-ਚਤੁਰਭੁਜ)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="8,8 28,8 24,24 4,24"/></svg>
+        </button>
+        <button class="shape-button" data-shape="trapezoid">
+            <span class="punjabi-text">ਸਮਲੰਬ ਚਤੁਰਭੁਜ</span>
+            <span class="english-text">(Trapezoid)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="10,8 22,8 28,24 4,24"/></svg>
+        </button>
+        <button class="shape-button" data-shape="triangle">
+            <span class="punjabi-text">ਤਿਕੋਣ</span>
+            <span class="english-text">(Triangle)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="16,4 28,26 4,26"/></svg>
+        </button>
+        <button class="shape-button" data-shape="rightTriangle">
+            <span class="punjabi-text">ਸਮਕੋਣੀ ਤਿਕੋਣ</span>
+            <span class="english-text">(Right Angle)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="6,4 6,26 26,26"/></svg>
+        </button>
+        <button class="shape-button" data-shape="circle">
+            <span class="punjabi-text">ਚੱਕਰ</span>
+            <span class="english-text">(Circle)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/></svg>
+        </button>
+        <button class="shape-button" data-shape="cube">
+            <span class="punjabi-text">ਘਣ</span>
+            <span class="english-text">(Cube)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <path d="M16,6 L26,11 L26,21 L16,26 L6,21 L6,11 Z" stroke-linejoin="round"/>
+                <path d="M16,6 L16,16 L26,11 M16,16 L6,11 M16,16 L16,26" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="cuboid">
+            <span class="punjabi-text">ਘਣਾਵ</span>
+            <span class="english-text">(Cuboid)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <rect x="4" y="14" width="16" height="10"/>
+                <path d="M4,14 L10,8 L26,8 L26,18 L20,24" stroke-linejoin="round"/>
+                <path d="M20,14 L26,8"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="cylinder">
+            <span class="punjabi-text">ਬੇਲਣ</span>
+            <span class="english-text">(Cylinder)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <ellipse cx="16" cy="8" rx="10" ry="4"/>
+                <path d="M6,8 L6,24 A10,4 0 0,0 26,24 L26,8"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="pyramid">
+            <span class="punjabi-text">ਪਿਰਾਮਿੰਡ</span>
+            <span class="english-text">(Pyramid)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <path d="M16,4 L4,24 L28,24 Z M16,4 L16,24" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="cone">
+            <span class="punjabi-text">ਸ਼ੰਕੂ</span>
+            <span class="english-text">(Cone)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <path d="M16,4 L6,24 A10,4 0 0,0 26,24 Z" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="sphere">
+            <span class="punjabi-text">ਗੋਲਾ</span>
+            <span class="english-text">(Sphere)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="10"/>
+                <ellipse cx="16" cy="16" rx="10" ry="4"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="hemisphere">
+            <span class="punjabi-text">ਅਰਧ ਗੋਲਾ</span>
+            <span class="english-text">(Hemisphere)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <path d="M6,16 A10,10 0 0,0 26,16"/>
+                <ellipse cx="16" cy="16" rx="10" ry="3"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="torus">
+            <span class="punjabi-text">ਟਿਊਬ TORUS</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <ellipse cx="16" cy="16" rx="12" ry="6"/>
+                <ellipse cx="16" cy="16" rx="5" ry="2"/>
+            </svg>
+        </button>
+    </div>
+
+    <div id="input-results-area">
+        <button id="mini-back-btn">&larr; Back</button>
+        <h2 id="shape-title"></h2>
+        <div id="inputs-container">
+            </div>
+    </div>
+</div>
+
+<script>
+    const shapeData = {
+        'square': {
+            titlePa: 'ਵਰਗ', titleEn: 'Square',
+            sections: [{
+                name: '',
+                inputs: [{ key: 'side', label: 'Side Length (s)' }],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => data.side ** 2 },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => 4 * data.side }
+                ]
+            }]
+        },
+        'rectangle': {
+            titlePa: 'ਆਇਤ', titleEn: 'Rectangle',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'length', label: 'Length (l)' },
+                    { key: 'width', label: 'Width (w)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => data.length * data.width },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => 2 * (data.length + data.width) }
+                ]
+            }]
+        },
+        'rhombus': {
+            titlePa: 'ਸਮ-ਚਤੁਰਭੁਜ', titleEn: 'Rhombus',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'base', label: 'Base (b)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => data.base * data.height },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => 4 * data.base }
+                ]
+            }]
+        },
+        'parallelogram': {
+            titlePa: 'ਸਮਾਂਤਰ-ਚਤੁਰਭੁਜ', titleEn: 'Parallelogram',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'base', label: 'Base (b)' },
+                    { key: 'side', label: 'Side length (s)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => data.base * data.height },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => 2 * (data.base + data.side) }
+                ]
+            }]
+        },
+        'trapezoid': {
+            titlePa: 'ਸਮਲੰਬ ਚਤੁਰਭੁਜ', titleEn: 'Trapezoid',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'base1', label: 'Base 1 (b1)' },
+                    { key: 'base2', label: 'Base 2 (b2)' },
+                    { key: 'height', label: 'Height (h)' },
+                    { key: 'side1', label: 'Non-parallel side 1 (s1)' },
+                    { key: 'side2', label: 'Non-parallel side 2 (s2)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => (0.5 * (data.base1 + data.base2) * data.height) },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => data.base1 + data.base2 + data.side1 + data.side2 }
+                ]
+            }]
+        },
+        'triangle': {
+            titlePa: 'ਤਿਕੋਣ', titleEn: 'Triangle',
+            sections: [
+                {
+                    name: 'Method 1: Base & Height',
+                    inputs: [
+                        { key: 'base', label: 'Base (b)' },
+                        { key: 'height', label: 'Height (h)' }
+                    ],
+                    formulas: [
+                        { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => (data.base * data.height) / 2 }
+                    ]
+                },
+                {
+                    name: "Method 2: 3 Sides (Heron's Formula)",
+                    inputs: [
+                        { key: 'side1', label: 'Side 1' },
+                        { key: 'side2', label: 'Side 2' },
+                        { key: 'side3', label: 'Side 3' }
+                    ],
+                    formulas: [
+                        { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => {
+                            const s = (data.side1 + data.side2 + data.side3) / 2;
+                            return Math.sqrt(s * (s - data.side1) * (s - data.side2) * (s - data.side3));
+                        }},
+                        { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => data.side1 + data.side2 + data.side3 }
+                    ]
+                }
+            ]
+        },
+        'rightTriangle': {
+            titlePa: 'ਸਮਕੋਣੀ ਤਿਕੋਣ', titleEn: 'Right Angle Triangle',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'base', label: 'Base (b)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => (data.base * data.height) / 2 },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => data.base + data.height + Math.sqrt(data.base**2 + data.height**2) },
+                    { key: 'Hypotenuse', pa: 'ਕਰਣ', calc: (data) => Math.sqrt(data.base**2 + data.height**2) }
+                ]
+            }]
+        },
+        'circle': {
+            titlePa: 'ਚੱਕਰ', titleEn: 'Circle',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => Math.PI * data.radius ** 2 },
+                    { key: 'Circumference (Perimeter)', pa: 'ਪਰਿਮਾਪ', calc: (data) => 2 * Math.PI * data.radius }
+                ]
+            }]
+        },
+        'cube': {
+            titlePa: 'ਘਣ', titleEn: 'Cube',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'side', label: 'Side length (s)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => data.side ** 3 },
+                    { key: 'Full Area (Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 6 * data.side ** 2 },
+                    { key: 'Side Area (Lateral)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 4 * data.side ** 2 }
+                ]
+            }]
+        },
+        'cuboid': {
+            titlePa: 'ਘਣਾਵ', titleEn: 'Cuboid',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'length', label: 'Length (l)' },
+                    { key: 'width', label: 'Width (w)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => data.length * data.width * data.height },
+                    { key: 'Full Area (Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 2 * (data.length * data.width + data.length * data.height + data.width * data.height) },
+                    { key: 'Side Area (Lateral)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 2 * data.height * (data.length + data.width) }
+                ]
+            }]
+        },
+        'cylinder': {
+            titlePa: 'ਬੇਲਣ', titleEn: 'Cylinder',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => Math.PI * data.radius ** 2 * data.height },
+                    { key: 'Full Area (Total Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 2 * Math.PI * data.radius * (data.radius + data.height) },
+                    { key: 'Side Area (Lateral Surface)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 2 * Math.PI * data.radius * data.height }
+                ]
+            }]
+        },
+        'pyramid': {
+            titlePa: 'ਪਿਰਾਮਿੰਡ', titleEn: 'Pyramid (Square based)',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'baseSide', label: 'Base side length (s)' },
+                    { key: 'slantHeight', label: 'Slant height (sh)' },
+                    { key: 'height', label: 'Perpendicular height (h)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => (1/3) * data.baseSide ** 2 * data.height },
+                    { key: 'Full Area (Total Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => data.baseSide ** 2 + 4 * (0.5 * data.baseSide * data.slantHeight) },
+                    { key: 'Side Area (Lateral Surface)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 4 * (0.5 * data.baseSide * data.slantHeight) }
+                ]
+            }]
+        },
+        'cone': {
+            titlePa: 'ਸ਼ੰਕੂ', titleEn: 'Cone',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' },
+                    { key: 'height', label: 'Height (h)' },
+                    { key: 'slantHeight', label: 'Slant height (sh)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => (1/3) * Math.PI * data.radius ** 2 * data.height },
+                    { key: 'Full Area (Total Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => Math.PI * data.radius * (data.radius + data.slantHeight) },
+                    { key: 'Side Area (Curved Surface)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => Math.PI * data.radius * data.slantHeight }
+                ]
+            }]
+        },
+        'sphere': {
+            titlePa: 'ਗੋਲਾ', titleEn: 'Sphere',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => (4/3) * Math.PI * data.radius ** 3 },
+                    { key: 'Full Area (Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 4 * Math.PI * data.radius ** 2 }
+                ]
+            }]
+        },
+        'hemisphere': {
+            titlePa: 'ਅਰਧ ਗੋਲਾ', titleEn: 'Hemisphere',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => (2/3) * Math.PI * data.radius ** 3 },
+                    { key: 'Full Area (Total Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 3 * Math.PI * data.radius ** 2 },
+                    { key: 'Side Area (Curved Surface)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 2 * Math.PI * data.radius ** 2 }
+                ]
+            }]
+        },
+        'torus': {
+            titlePa: 'ਟਿਊਬ TORUS', titleEn: 'Torus',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'majorRadius', label: 'Major Radius (R)' },
+                    { key: 'minorRadius', label: 'Minor Radius (r)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => 2 * Math.PI ** 2 * data.majorRadius * data.minorRadius ** 2 },
+                    { key: 'Full Area (Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 4 * Math.PI ** 2 * data.majorRadius * data.minorRadius }
+                ]
+            }]
+        }
+    };
+
+    const gridContainer = document.getElementById('shape-grid-container');
+    const inputResultsArea = document.getElementById('input-results-area');
+    const shapeTitle = document.getElementById('shape-title');
+    const inputsContainer = document.getElementById('inputs-container');
+    const miniBackBtn = document.getElementById('mini-back-btn');
+
+    let currentShapeKey = null;
+
+    function showInputsArea(shapeKey) {
+        currentShapeKey = shapeKey;
+        const shape = shapeData[shapeKey];
+        
+        shapeTitle.innerHTML = `${shape.titleEn} (${shape.titlePa})`;
+        inputsContainer.innerHTML = '';
+        
+        shape.sections.forEach((section, index) => {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'calc-section';
+            
+            let html = '';
+            
+            if (section.name) {
+                html += `<h3>${section.name}</h3>`;
+            }
+            
+            section.inputs.forEach(input => {
+                html += `
+                    <div class="input-group">
+                        <label for="input-${shapeKey}-${index}-${input.key}">${input.label}</label>
+                        <input type="number" id="input-${shapeKey}-${index}-${input.key}" step="any" required>
+                    </div>
+                `;
+            });
+            
+            html += `<button class="calc-btn" data-index="${index}">Calculate</button>`;
+            html += `
+                <div class="results-container" id="results-${shapeKey}-${index}" style="display: none;">
+                    <h4>Results:</h4>
+                    <div class="results-list" id="list-${shapeKey}-${index}"></div>
+                </div>
+            `;
+            
+            if (index < shape.sections.length - 1) {
+                html += `<hr style="margin: 30px 0; border: 1px solid rgba(255,255,255,0.2);">`;
+            }
+            
+            sectionDiv.innerHTML = html;
+            inputsContainer.appendChild(sectionDiv);
+        });
+
+        inputResultsArea.classList.add('show');
+    }
+
+    function hideInputsArea() {
+        inputResultsArea.classList.remove('show');
+    }
+
+    inputsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('calc-btn')) {
+            const sectionIndex = e.target.dataset.index;
+            performCalculation(sectionIndex);
+        }
+    });
+
+    function performCalculation(sectionIndex) {
+        const shape = shapeData[currentShapeKey];
+        const section = shape.sections[sectionIndex];
+        const data = {};
+        let isValid = true;
+
+        section.inputs.forEach(input => {
+            const inputElement = document.getElementById(`input-${currentShapeKey}-${sectionIndex}-${input.key}`);
+            const value = parseFloat(inputElement.value);
+            if (isNaN(value)) {
+                isValid = false;
+                alert(`Please enter a valid number for ${input.label}`);
+                return;
+            }
+            if (value <= 0) {
+                isValid = false;
+                alert(`${input.label} must be a positive number.`);
+                return;
+            }
+            data[input.key] = value;
+        });
+
+        if (!isValid) return;
+
+        const resultsList = document.getElementById(`list-${currentShapeKey}-${sectionIndex}`);
+        resultsList.innerHTML = '';
+        
+        section.formulas.forEach(formula => {
+            const result = formula.calc(data);
+            
+            const displayValue = isNaN(result) ? "Invalid Dimensions" : result.toFixed(2);
+            
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+            resultItem.innerHTML = `
+                <span class="result-label">${formula.pa} (${formula.key}):</span>
+                <span class="result-value">${displayValue}</span>
+            `;
+            resultsList.appendChild(resultItem);
+        });
+
+        document.getElementById(`results-${currentShapeKey}-${sectionIndex}`).style.display = 'block';
+    }
+
+    gridContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('.shape-button');
+        if (button) {
+            const shapeKey = button.dataset.shape;
+            showInputsArea(shapeKey);
+        }
+    });
+
+    miniBackBtn.addEventListener('click', hideInputsArea);
+</script>
+
+</body>
+</html>
